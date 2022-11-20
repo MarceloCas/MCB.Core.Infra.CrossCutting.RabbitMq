@@ -1,13 +1,17 @@
 ﻿using MCB.Core.Infra.CrossCutting.RabbitMq.Connection.Interfaces;
 using MCB.Core.Infra.CrossCutting.RabbitMq.Models;
 using RabbitMQ.Client;
+using RabbitMQ.Client.Exceptions;
 
 namespace MCB.Core.Infra.CrossCutting.RabbitMq.Connection;
 public class RabbitMqConnection
     : IRabbitMqConnection
 {
+    // Constants
+    public const string INVALID_RABBITMQ_EXCHANGE_TYPE = "INVALID_RABBITMQ_EXCHANGE_TYPE";
+
     // Fields
-    private readonly RabbitMqConnectionConfig _rabbitMqConnectionConfig;
+    private readonly RabbitMqConnectionConfig _connectionConfig;
     private readonly ConnectionFactory _connectionFactory;
 
     private IConnection _connection = null!;
@@ -15,24 +19,25 @@ public class RabbitMqConnection
 
     // Properties
     public bool IsOpen => _connection?.IsOpen == true && _channel?.IsOpen == true;
+    public DateTime? LastOpenDate { get; private set; }
 
     // Constructors
-    public RabbitMqConnection(RabbitMqConnectionConfig rabbitMqConnectionConfig)
+    public RabbitMqConnection(RabbitMqConnectionConfig connectionConfig)
     {
-        _rabbitMqConnectionConfig = rabbitMqConnectionConfig;
+        _connectionConfig = connectionConfig;
         _connectionFactory = new ConnectionFactory
         {
-            ClientProvidedName = _rabbitMqConnectionConfig.ClientProvidedName,
-            HostName = _rabbitMqConnectionConfig.HostName,
-            Port = _rabbitMqConnectionConfig.Port,
-            UserName = _rabbitMqConnectionConfig.Username,
-            Password = _rabbitMqConnectionConfig.Password,
-            VirtualHost = _rabbitMqConnectionConfig.VirtualHost,
-            DispatchConsumersAsync = _rabbitMqConnectionConfig.DispatchConsumersAsync,
-            AutomaticRecoveryEnabled = _rabbitMqConnectionConfig.AutomaticRecoveryEnabled,
-            NetworkRecoveryInterval = _rabbitMqConnectionConfig.NetworkRecoveryInterval,
-            TopologyRecoveryEnabled = _rabbitMqConnectionConfig.TopologyRecoveryEnabled,
-            RequestedHeartbeat = _rabbitMqConnectionConfig.RequestedHeartbeat,
+            ClientProvidedName = _connectionConfig.ClientProvidedName,
+            HostName = _connectionConfig.HostName,
+            Port = _connectionConfig.Port,
+            UserName = _connectionConfig.Username,
+            Password = _connectionConfig.Password,
+            VirtualHost = _connectionConfig.VirtualHost,
+            DispatchConsumersAsync = _connectionConfig.DispatchConsumersAsync,
+            AutomaticRecoveryEnabled = _connectionConfig.AutomaticRecoveryEnabled,
+            NetworkRecoveryInterval = _connectionConfig.NetworkRecoveryInterval,
+            TopologyRecoveryEnabled = _connectionConfig.TopologyRecoveryEnabled,
+            RequestedHeartbeat = _connectionConfig.RequestedHeartbeat,
         };
     }
 
@@ -50,6 +55,38 @@ public class RabbitMqConnection
         OpenConnectionInternal();
     }
 
+    public QueueDeclareOk? QueueDeclare(RabbitMqQueueConfig queueConfig)
+    {
+        TryAutoConnect();
+
+        return _channel.QueueDeclare(
+            queue: queueConfig.QueueName,
+            durable: queueConfig.Durable,
+            exclusive: queueConfig.Exclusive,
+            autoDelete: queueConfig.AutoDelete,
+            arguments: queueConfig.Arguments
+        );
+    }
+    public void ExchangeDeclare(RabbitMqExchangeConfig exchangeConfig)
+    {
+        TryAutoConnect();
+
+        _channel.ExchangeDeclare(
+            exchange: exchangeConfig.ExchangeName,
+            type: exchangeConfig.ExchangeType switch
+            {
+                Models.Enums.RabbitMqExchangeType.Direct => ExchangeType.Direct,
+                Models.Enums.RabbitMqExchangeType.Topic => ExchangeType.Topic,
+                Models.Enums.RabbitMqExchangeType.Header => ExchangeType.Headers,
+                Models.Enums.RabbitMqExchangeType.Fanout => ExchangeType.Fanout,
+                _ => throw new InvalidOperationException(INVALID_RABBITMQ_EXCHANGE_TYPE),
+            },
+            durable: exchangeConfig.Durable,
+            autoDelete: exchangeConfig.AutoDelete,
+            arguments: exchangeConfig.Arguments
+        );
+    }
+
     public bool CheckIfQueueExists(string queueName)
     {
         try
@@ -57,7 +94,7 @@ public class RabbitMqConnection
             _connection.CreateModel().QueueDeclarePassive(queueName);
             return true;
         }
-        catch (Exception)
+        catch (OperationInterruptedException)
         {
             return false;
         }
@@ -111,15 +148,32 @@ public class RabbitMqConnection
         _channel.BasicNack(deliveryTag, multiple, requeue);
     }
 
+    public void Dispose()
+    {
+        _channel.Dispose();
+        _connection.Dispose();
+
+        GC.SuppressFinalize(this);
+    }
+
     // Private Methods
     private void OpenConnectionInternal()
     {
         _connection = _connectionFactory.CreateConnection();
         _channel = _connection.CreateModel();
+        LastOpenDate = DateTime.UtcNow;
     }
     private void CloseConnectionInternal()
     {
-        _channel?.Close();
-        _connection?.Close();
+        if(_channel?.IsOpen == true)
+            _channel?.Close();
+
+        if(_connection?.IsOpen == true)
+            _connection?.Close();
+    }
+    private void TryAutoConnect()
+    {
+        if (_connectionConfig.AutoConnect && IsOpen == false)
+            OpenConnection();
     }
 }
