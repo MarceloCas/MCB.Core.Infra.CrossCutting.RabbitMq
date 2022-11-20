@@ -6,4 +6,10 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <ItemGroup>
+    <PackageReference Include="MCB.Core.Infra.CrossCutting.DependencyInjection.Abstractions" Version="0.6.0-alpha" />
+    <PackageReference Include="MCB.Core.Infra.CrossCutting.DesignPatterns.Abstractions" Version="0.38.0-alpha" />
+    <PackageReference Include="RabbitMQ.Client" Version="6.4.0" />
+  </ItemGroup>
+
 </Project>
