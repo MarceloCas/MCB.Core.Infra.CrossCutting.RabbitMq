@@ -7,6 +7,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 	ProjectSection(SolutionItems) = preProject
 		.github\workflows\build-and-test.yml = .github\workflows\build-and-test.yml
 		.github\workflows\pack-and-publish.yml = .github\workflows\pack-and-publish.yml
+		README.md = README.md
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{B401DCD1-907B-4272-BA9E-CDCEE1D38298}"
@@ -17,7 +18,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MCB.Core.Infra.CrossCutting
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MCB.Core.Infra.CrossCutting.RabbitMq.Tests", "tst\MCB.Core.Infra.CrossCutting.RabbitMq.Tests\MCB.Core.Infra.CrossCutting.RabbitMq.Tests.csproj", "{262B24A5-24E8-4700-BACF-B3BDBEEF3DB0}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MCB.Core.Infra.CrossCutting.RabbitMq.IntegrationTests", "tst\MCB.Core.Infra.CrossCutting.RabbitMq.IntegrationTests\MCB.Core.Infra.CrossCutting.RabbitMq.IntegrationTests.csproj", "{2417CF94-CC47-4D82-8531-BB0E51B9EA9E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MCB.Core.Infra.CrossCutting.RabbitMq.IntegrationTests", "tst\MCB.Core.Infra.CrossCutting.RabbitMq.IntegrationTests\MCB.Core.Infra.CrossCutting.RabbitMq.IntegrationTests.csproj", "{2417CF94-CC47-4D82-8531-BB0E51B9EA9E}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

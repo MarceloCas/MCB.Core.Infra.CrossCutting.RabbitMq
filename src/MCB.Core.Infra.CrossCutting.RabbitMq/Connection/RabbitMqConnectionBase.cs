@@ -4,7 +4,7 @@ using RabbitMQ.Client;
 using RabbitMQ.Client.Exceptions;
 
 namespace MCB.Core.Infra.CrossCutting.RabbitMq.Connection;
-public class RabbitMqConnection
+public abstract class RabbitMqConnectionBase
     : IRabbitMqConnection
 {
     // Constants
@@ -22,7 +22,7 @@ public class RabbitMqConnection
     public DateTime? LastOpenDate { get; private set; }
 
     // Constructors
-    public RabbitMqConnection(RabbitMqConnectionConfig connectionConfig)
+    protected RabbitMqConnectionBase(RabbitMqConnectionConfig connectionConfig)
     {
         _connectionConfig = connectionConfig;
         _connectionFactory = new ConnectionFactory
@@ -112,6 +112,31 @@ public class RabbitMqConnection
         }
     }
 
+    public void PublishQueue(RabbitMqQueueConfig queueConfig, IBasicProperties properties, ReadOnlyMemory<byte> message) 
+    {
+        lock (_channel)
+        {
+            _channel.BasicPublish(
+                exchange: string.Empty,
+                routingKey: queueConfig.QueueName,
+                basicProperties: properties,
+                body: message
+            );
+        }
+    }
+    public void PublishExchange(RabbitMqExchangeConfig exchangeConfig, string routingKey, IBasicProperties properties, ReadOnlyMemory<byte> message)
+    {
+        lock (_channel)
+        {
+            _channel.BasicPublish(
+                exchange: exchangeConfig.ExchangeName,
+                routingKey: routingKey,
+                basicProperties: properties,
+                body: message
+            );
+        }
+    }
+
     public (uint messageCount, uint consumerCount)? GetQueueCounters(string queueName)
     {
         try
@@ -125,9 +150,18 @@ public class RabbitMqConnection
         }
     }
 
-    public void DeleteQueue(string queueName, bool ifUnused, bool ifEmpty)
+    public bool DeleteQueue(string queueName, bool ifUnused = false, bool ifEmpty = false)
     {
-        _channel.QueueDelete(queueName, ifUnused, ifEmpty);
+        try
+        {
+            _channel.QueueDelete(queueName, ifUnused, ifEmpty);
+            return true;
+        }
+        catch (Exception)
+        {
+            OpenConnection();
+            return false;
+        }
     }
     public void PurgeQueue(string queueName)
     {
@@ -148,8 +182,15 @@ public class RabbitMqConnection
         _channel.BasicNack(deliveryTag, multiple, requeue);
     }
 
+    public IBasicProperties CreateBasicProperties()
+    {
+        return _channel.CreateBasicProperties();
+    }
+
     public void Dispose()
     {
+        CloseConnectionInternal();
+
         _channel.Dispose();
         _connection.Dispose();
 

@@ -1,0 +1,71 @@
+﻿using MCB.Core.Infra.CrossCutting.DesignPatterns.Abstractions.Observer;
+using MCB.Core.Infra.CrossCutting.RabbitMq.Connection.Interfaces;
+using MCB.Core.Infra.CrossCutting.RabbitMq.Publishers.Interfaces;
+using RabbitMQ.Client;
+
+namespace MCB.Core.Infra.CrossCutting.RabbitMq.Publishers;
+public abstract class RabbitMqPublisherBase
+    : IRabbitMqPublisher
+{
+    // Constants
+    public const string MESSAGE_SERIALIZATION_CANNOT_RETURN_NULL = "MESSAGE_SERIALIZATION_CANNOT_RETURN_NULL";
+
+    // Fields
+    protected IRabbitMqConnection Connection { get; }
+
+    // Constructors
+    public RabbitMqPublisherBase(
+        IRabbitMqConnection connection
+    )
+    {
+        Connection = connection;
+    }
+
+    // Public Methods
+    public abstract Task PublishAsync<TSubject>(TSubject subject, CancellationToken cancellationToken);
+    public abstract Task PublishAsync<TSubject>(TSubject subject, Type subjectBaseType, CancellationToken cancellationToken);
+
+    public void Subscribe(Type subscriberType, Type subjectType)
+    {
+        throw new NotImplementedException();
+    }
+    public void Subscribe<TSubscriber>(Type subjectType)
+    {
+        throw new NotImplementedException();
+    }
+    public void Subscribe<TSubscriber, TSubject>() where TSubscriber : ISubscriber<TSubject>
+    {
+        throw new NotImplementedException();
+    }
+
+    // Protected Methods
+    protected ReadOnlyMemory<byte> GetMessage<TSubject>(TSubject subject, Type subjectBaseType)
+    {
+        if (subject is null)
+            throw new ArgumentNullException(nameof(subject));
+
+        var message = SerializeMessage(subject, subjectBaseType);
+
+        if (message is null)
+            throw new InvalidOperationException(MESSAGE_SERIALIZATION_CANNOT_RETURN_NULL);
+
+        return message.Value;
+    }
+    protected IBasicProperties? GetBasicPropertiesInternal(object subject, Type subjectBaseType)
+    {
+        var propertyDictionary = GetBasicProperties(subject, subjectBaseType);
+
+        if (propertyDictionary is null
+            || propertyDictionary.Count == 0)
+            return null;
+
+        var basicProperties = Connection.CreateBasicProperties();
+        basicProperties.Headers = propertyDictionary;
+
+        return basicProperties;
+    }
+
+    // Protected Abstract Methods
+    protected abstract IDictionary<string, object>? GetBasicProperties(object subject, Type subjectBaseType);
+    protected abstract ReadOnlyMemory<byte>? SerializeMessage(object subject, Type subjectBaseType);
+}

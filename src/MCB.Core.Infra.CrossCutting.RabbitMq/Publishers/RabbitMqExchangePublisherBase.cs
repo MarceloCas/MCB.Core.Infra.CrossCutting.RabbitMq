@@ -3,19 +3,19 @@ using MCB.Core.Infra.CrossCutting.RabbitMq.Models;
 
 namespace MCB.Core.Infra.CrossCutting.RabbitMq.Publishers;
 
-public abstract class RabbitMqQueuePublisherBase
+public abstract class RabbitMqExchangePublisherBase
     : RabbitMqPublisherBase
 {
     // Properties
-    protected RabbitMqQueueConfig QueueConfig { get; }
+    protected RabbitMqExchangeConfig ExchangeConfig { get; }
 
     // Constructors
-    protected RabbitMqQueuePublisherBase(
+    public RabbitMqExchangePublisherBase(
         IRabbitMqConnection connection,
-        RabbitMqQueueConfig queueConfig
+        RabbitMqExchangeConfig exchangeConfig
     ) : base(connection)
     {
-        QueueConfig = queueConfig;
+        ExchangeConfig = exchangeConfig;
     }
 
     // Public Methods
@@ -26,8 +26,9 @@ public abstract class RabbitMqQueuePublisherBase
     public override Task PublishAsync<TSubject>(TSubject subject, Type subjectBaseType, CancellationToken cancellationToken)
     {
 #pragma warning disable CS8604 // Possible null reference argument.
-        Connection.PublishQueue(
-            QueueConfig,
+        Connection.PublishExchange(
+            ExchangeConfig,
+            routingKey: GetRoutingKey(subject, subjectBaseType),
             properties: GetBasicPropertiesInternal(subject, subjectBaseType),
             message: GetMessage(subject, subjectBaseType)
         );
@@ -35,4 +36,7 @@ public abstract class RabbitMqQueuePublisherBase
 
         return Task.CompletedTask;
     }
+
+    // Protected Abstract Methods
+    protected abstract string GetRoutingKey(object subject, Type subjectBaseType);
 }
