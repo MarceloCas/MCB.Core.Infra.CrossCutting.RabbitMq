@@ -27,10 +27,17 @@ jobs:
       run: dotnet restore
       env:
         DOTNET_SYSTEM_GLOBALIZATION_INVARIANT: 1
-    - name: Build And Test
+    - name: Build
       env:
         SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        DOTNET_SYSTEM_GLOBALIZATION_INVARIANT: 1
       run: |
         dotnet build --no-restore
+    - name: Test
+      env:
+        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        DOTNET_SYSTEM_GLOBALIZATION_INVARIANT: 1
+      run: |
         dotnet test --no-build --verbosity normal ./tst/MCB.Core.Infra.CrossCutting.RabbitMq.IntegrationTests/MCB.Core.Infra.CrossCutting.RabbitMq.IntegrationTests.csproj
