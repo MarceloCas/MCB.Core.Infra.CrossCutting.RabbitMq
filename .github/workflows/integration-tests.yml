@@ -1,0 +1,44 @@
+name: integrations-tests
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+    inputs:
+      logLevel:
+        description: 'Log level'     
+        required: true
+        default: 'warning'
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+    container: 
+      image: rabbitmq:3-management-alpine
+      env:
+        RABBITMQ_DEFAULT_USER: guest
+        RABBITMQ_DEFAULT_PASS: guest
+      ports:
+        - 5672
+
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        fetch-depth: 0
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v2
+      with:
+        dotnet-version: 6.0.x
+    - name: Restore dependencies
+      run: dotnet restore
+    - name: Build And Test
+      env:
+        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      shell: pwsh
+      run: |
+        dotnet build --no-restore
+        dotnet test --no-build --verbosity normal ./tst/MCB.Core.Infra.CrossCutting.RabbitMq.IntegrationTests/MCB.Core.Infra.CrossCutting.RabbitMq.IntegrationTests.csproj
