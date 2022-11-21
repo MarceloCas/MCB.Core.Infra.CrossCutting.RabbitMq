@@ -18,6 +18,14 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+    - name: Setup RabbitMQ
+      uses: getong/rabbitmq-action@v1.2
+      with:
+        rabbitmq version: '3-management-alpine'
+        host port: 5672
+        rabbitmq user: 'guest'
+        rabbitmq password: 'guest'
+        rabbitmq vhost: '/'
     - uses: actions/checkout@v3
       with:
         fetch-depth: 0
@@ -41,4 +49,5 @@ jobs:
         .\.sonar\scanner\dotnet-sonarscanner begin /k:"MarceloCas_MCB.Core.Infra.CrossCutting.RabbitMq" /o:"marcelocas" /d:sonar.login="${{ secrets.SONAR_TOKEN }}" /d:sonar.host.url="https://sonarcloud.io" /d:sonar.cs.opencover.reportsPaths="**/coverage.opencover.xml" /d:sonar.coverage.exclusions="tst/**" /d:sonar.exclusions="tst/**"
         dotnet build --no-restore
         dotnet test --no-build --verbosity normal /p:CollectCoverage=true /p:CoverletOutputFormat=opencover ./tst/MCB.Core.Infra.CrossCutting.RabbitMq.Tests/MCB.Core.Infra.CrossCutting.RabbitMq.Tests.csproj
+        dotnet test --no-build --verbosity ${{ github.event.inputs.dotnetTestVerbosity }} ./tst/MCB.Core.Infra.CrossCutting.RabbitMq.IntegrationTests/MCB.Core.Infra.CrossCutting.RabbitMq.IntegrationTests.csproj
         ./.sonar/scanner/dotnet-sonarscanner end /d:sonar.login="${{ secrets.SONAR_TOKEN }}"
