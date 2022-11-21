@@ -26,7 +26,7 @@ jobs:
     - name: Build
       run: dotnet build --no-restore -c Release
     - name: Test
-      run: dotnet test -c Release --no-build --verbosity normal
+      run: dotnet test -c Release --no-build --verbosity normal ./tst/MCB.Core.Infra.CrossCutting.RabbitMq.Tests/MCB.Core.Infra.CrossCutting.RabbitMq.Tests.csproj
     - name: Pack
       run: dotnet pack -c Release src/MCB.Core.Infra.CrossCutting.RabbitMq/MCB.Core.Infra.CrossCutting.RabbitMq /p:Version='${{ github.event.inputs.version }}' --include-symbols --include-source
     - name: Publish
