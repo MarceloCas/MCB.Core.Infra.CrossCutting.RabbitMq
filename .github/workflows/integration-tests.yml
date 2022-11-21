@@ -6,7 +6,7 @@ on:
       dotnetTestVerbosity:
         description: 'dotnet test verbosity'     
         required: true
-        default: 'detailed'
+        default: 'normal'
 
 jobs:
   build:
