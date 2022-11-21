@@ -7,10 +7,6 @@ on:
         description: 'Package version'     
         required: true
         default: '0.0.0'
-      dotnetTestVerbosity:
-        description: 'dotnet test verbosity'     
-        required: true
-        default: 'normal'
 
 jobs:
   build:
