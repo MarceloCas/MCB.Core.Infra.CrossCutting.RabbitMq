@@ -1,16 +1,7 @@
 name: integrations-tests
 
 on:
-  push:
-    branches: [ main ]
-  pull_request:
-    branches: [ main ]
   workflow_dispatch:
-    inputs:
-      logLevel:
-        description: 'Log level'     
-        required: true
-        default: 'warning'
 
 jobs:
   build:
@@ -40,7 +31,6 @@ jobs:
       env:
         SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      shell: pwsh
       run: |
         dotnet build --no-restore
         dotnet test --no-build --verbosity normal ./tst/MCB.Core.Infra.CrossCutting.RabbitMq.IntegrationTests/MCB.Core.Infra.CrossCutting.RabbitMq.IntegrationTests.csproj
