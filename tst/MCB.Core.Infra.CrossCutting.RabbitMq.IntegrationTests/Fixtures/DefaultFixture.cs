@@ -55,7 +55,7 @@ public class DefaultFixture
     {
         return new RabbitMqConnectionConfig(
             ClientProvidedName: $"{nameof(DefaultFixtureColelction)}.{Guid.NewGuid()}",
-            HostName: "localhost",
+            HostName: "127.0.0.1",
             Port: 5672,
             Username: "guest",
             Password: "guest",
