@@ -66,10 +66,9 @@ public abstract class RabbitMqPublisherBase
 
         var serializedRabbitMqMessageEnvelop = SerializeRabbitMqEnvelopMessage(rabbitMqMessageEnvelop);
 
-        if(serializedRabbitMqMessageEnvelop is null)
-            throw new InvalidOperationException(MESSAGE_ENVELOP_SERIALIZATION_CANNOT_RETURN_NULL);
-
-        return serializedRabbitMqMessageEnvelop.Value;
+        return serializedRabbitMqMessageEnvelop is null
+            ? throw new InvalidOperationException(MESSAGE_ENVELOP_SERIALIZATION_CANNOT_RETURN_NULL)
+            : serializedRabbitMqMessageEnvelop.Value;
     }
     protected IBasicProperties? GetBasicPropertiesInternal(object subject, Type subjectBaseType)
     {
