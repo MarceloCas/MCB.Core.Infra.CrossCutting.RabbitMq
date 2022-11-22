@@ -30,4 +30,17 @@ public class RabbitMqFanoutExchangePublisher
     {
         return _protobufSerializer.SerializeToProtobuf(subject);
     }
+    protected override ReadOnlyMemory<byte>? SerializeRabbitMqEnvelopMessage(RabbitMqMessageEnvelop rabbitMqMessageEnvelop)
+    {
+        return _protobufSerializer.SerializeToProtobuf(rabbitMqMessageEnvelop);
+    }
+    protected override (Guid TenantId, Guid CorrelationId, string ExecutionUser, string SourcePlatform) GetRabbitMqMessageEnvelopInfo(object subject, Type subjectBaseType)
+    {
+        return (
+            TenantId: Guid.NewGuid(),
+            CorrelationId: Guid.NewGuid(),
+            ExecutionUser: Guid.NewGuid().ToString(),
+            SourcePlatform: Guid.NewGuid().ToString()
+        );
+    }
 }

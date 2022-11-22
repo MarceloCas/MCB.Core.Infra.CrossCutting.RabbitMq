@@ -1,14 +1,18 @@
 ﻿using MCB.Core.Infra.CrossCutting.DesignPatterns.Abstractions.Observer;
 using MCB.Core.Infra.CrossCutting.RabbitMq.Connection.Interfaces;
+using MCB.Core.Infra.CrossCutting.RabbitMq.Models;
 using MCB.Core.Infra.CrossCutting.RabbitMq.Publishers.Interfaces;
 using RabbitMQ.Client;
+using System.Net;
 
 namespace MCB.Core.Infra.CrossCutting.RabbitMq.Publishers;
+
 public abstract class RabbitMqPublisherBase
     : IRabbitMqPublisher
 {
     // Constants
     public const string MESSAGE_SERIALIZATION_CANNOT_RETURN_NULL = "MESSAGE_SERIALIZATION_CANNOT_RETURN_NULL";
+    public const string MESSAGE_ENVELOP_SERIALIZATION_CANNOT_RETURN_NULL = "MESSAGE_ENVELOP_SERIALIZATION_CANNOT_RETURN_NULL";
 
     // Fields
     protected IRabbitMqConnection Connection { get; }
@@ -44,12 +48,28 @@ public abstract class RabbitMqPublisherBase
         if (subject is null)
             throw new ArgumentNullException(nameof(subject));
 
-        var message = SerializeMessage(subject, subjectBaseType);
+        var subjectSerialized = SerializeMessage(subject, subjectBaseType);
 
-        if (message is null)
+        if (subjectSerialized is null)
             throw new InvalidOperationException(MESSAGE_SERIALIZATION_CANNOT_RETURN_NULL);
 
-        return message.Value;
+        var rabbitMqMessageEnvelopInfo = GetRabbitMqMessageEnvelopInfo(subject, subjectBaseType);
+        var rabbitMqMessageEnvelop = new RabbitMqMessageEnvelop(
+            TenantId: rabbitMqMessageEnvelopInfo.TenantId,
+            CorrelationId: rabbitMqMessageEnvelopInfo.CorrelationId,
+            ExecutionUser: rabbitMqMessageEnvelopInfo.ExecutionUser,
+            SourcePlatform: rabbitMqMessageEnvelopInfo.SourcePlatform,
+            TimeStamp: DateTime.UtcNow,
+            MessageType: typeof(TSubject),
+            Message: subjectSerialized.Value.ToArray()
+        );
+
+        var serializedRabbitMqMessageEnvelop = SerializeRabbitMqEnvelopMessage(rabbitMqMessageEnvelop);
+
+        if(serializedRabbitMqMessageEnvelop is null)
+            throw new InvalidOperationException(MESSAGE_ENVELOP_SERIALIZATION_CANNOT_RETURN_NULL);
+
+        return serializedRabbitMqMessageEnvelop.Value;
     }
     protected IBasicProperties? GetBasicPropertiesInternal(object subject, Type subjectBaseType)
     {
@@ -67,5 +87,7 @@ public abstract class RabbitMqPublisherBase
 
     // Protected Abstract Methods
     protected abstract IDictionary<string, object>? GetBasicProperties(object subject, Type subjectBaseType);
+    protected abstract (Guid TenantId, Guid CorrelationId, string ExecutionUser, string SourcePlatform) GetRabbitMqMessageEnvelopInfo(object subject, Type subjectBaseType);
     protected abstract ReadOnlyMemory<byte>? SerializeMessage(object subject, Type subjectBaseType);
+    protected abstract ReadOnlyMemory<byte>? SerializeRabbitMqEnvelopMessage(RabbitMqMessageEnvelop rabbitMqMessageEnvelop);
 }

@@ -46,7 +46,8 @@ public class DefaultFixture
 
         ProtobufSerializer.ConfigureTypeCollection(new[]
         {
-            typeof(DummyMessage)
+            typeof(DummyMessage),
+            typeof(RabbitMqMessageEnvelop)
         });
         _protobufSerializer = DependencyInjectionContainer.Resolve<IProtobufSerializer>()!;
     }
