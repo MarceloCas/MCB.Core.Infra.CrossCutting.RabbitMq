@@ -15,10 +15,10 @@ public abstract class RabbitMqConnectionBase
     private readonly ConnectionFactory _connectionFactory;
 
     private IConnection _connection = null!;
-    private IModel _channel = null!;
 
     // Properties
-    public bool IsOpen => _connection?.IsOpen == true && _channel?.IsOpen == true;
+    public IModel Channel { get; private set; } = null!;
+    public bool IsOpen => _connection?.IsOpen == true && Channel?.IsOpen == true;
     public DateTime? LastOpenDate { get; private set; }
 
     // Constructors
@@ -59,7 +59,7 @@ public abstract class RabbitMqConnectionBase
     {
         TryAutoConnect();
 
-        return _channel.QueueDeclare(
+        return Channel.QueueDeclare(
             queue: queueConfig.QueueName,
             durable: queueConfig.Durable,
             exclusive: queueConfig.Exclusive,
@@ -71,7 +71,7 @@ public abstract class RabbitMqConnectionBase
     {
         TryAutoConnect();
 
-        _channel.ExchangeDeclare(
+        Channel.ExchangeDeclare(
             exchange: exchangeConfig.ExchangeName,
             type: exchangeConfig.ExchangeType switch
             {
@@ -114,9 +114,9 @@ public abstract class RabbitMqConnectionBase
 
     public void PublishQueue(RabbitMqQueueConfig queueConfig, IBasicProperties properties, ReadOnlyMemory<byte> message) 
     {
-        lock (_channel)
+        lock (Channel)
         {
-            _channel.BasicPublish(
+            Channel.BasicPublish(
                 exchange: string.Empty,
                 routingKey: queueConfig.QueueName,
                 basicProperties: properties,
@@ -126,9 +126,9 @@ public abstract class RabbitMqConnectionBase
     }
     public void PublishExchange(RabbitMqExchangeConfig exchangeConfig, string routingKey, IBasicProperties properties, ReadOnlyMemory<byte> message)
     {
-        lock (_channel)
+        lock (Channel)
         {
-            _channel.BasicPublish(
+            Channel.BasicPublish(
                 exchange: exchangeConfig.ExchangeName,
                 routingKey: routingKey,
                 basicProperties: properties,
@@ -154,7 +154,7 @@ public abstract class RabbitMqConnectionBase
     {
         try
         {
-            _channel.QueueDelete(queueName, ifUnused, ifEmpty);
+            Channel.QueueDelete(queueName, ifUnused, ifEmpty);
             return true;
         }
         catch (Exception)
@@ -165,33 +165,38 @@ public abstract class RabbitMqConnectionBase
     }
     public void PurgeQueue(string queueName)
     {
-        _channel.QueuePurge(queueName);
+        Channel.QueuePurge(queueName);
     }
 
     public void DisconectConsumer(string consumerTag)
     {
-        _channel.BasicCancel(consumerTag);
+        Channel.BasicCancel(consumerTag);
     }
 
     public void Ack(ulong deliveryTag, bool multiple)
     {
-        _channel.BasicAck(deliveryTag, multiple);
+        Channel.BasicAck(deliveryTag, multiple);
     }
     public void Nack(ulong deliveryTag, bool multiple, bool requeue)
     {
-        _channel.BasicNack(deliveryTag, multiple, requeue);
+        Channel.BasicNack(deliveryTag, multiple, requeue);
     }
 
     public IBasicProperties CreateBasicProperties()
     {
-        return _channel.CreateBasicProperties();
+        return Channel.CreateBasicProperties();
+    }
+
+    public void CloseConsumer(string consumerTag)
+    {
+        Channel.BasicCancel(consumerTag);
     }
 
     public void Dispose()
     {
         CloseConnectionInternal();
 
-        _channel.Dispose();
+        Channel.Dispose();
         _connection.Dispose();
 
         GC.SuppressFinalize(this);
@@ -201,13 +206,13 @@ public abstract class RabbitMqConnectionBase
     private void OpenConnectionInternal()
     {
         _connection = _connectionFactory.CreateConnection();
-        _channel = _connection.CreateModel();
+        Channel = _connection.CreateModel();
         LastOpenDate = DateTime.UtcNow;
     }
     private void CloseConnectionInternal()
     {
-        if(_channel?.IsOpen == true)
-            _channel?.Close();
+        if(Channel?.IsOpen == true)
+            Channel?.Close();
 
         if(_connection?.IsOpen == true)
             _connection?.Close();

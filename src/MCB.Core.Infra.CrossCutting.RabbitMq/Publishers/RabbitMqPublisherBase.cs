@@ -3,7 +3,6 @@ using MCB.Core.Infra.CrossCutting.RabbitMq.Connection.Interfaces;
 using MCB.Core.Infra.CrossCutting.RabbitMq.Models;
 using MCB.Core.Infra.CrossCutting.RabbitMq.Publishers.Interfaces;
 using RabbitMQ.Client;
-using System.Net;
 
 namespace MCB.Core.Infra.CrossCutting.RabbitMq.Publishers;
 
@@ -11,6 +10,7 @@ public abstract class RabbitMqPublisherBase
     : IRabbitMqPublisher
 {
     // Constants
+    public const string MESSAGE_SUBSCRIBER_UNSUPPORTED = "MESSAGE_SUBSCRIBER_UNSUPPORTED";
     public const string MESSAGE_SERIALIZATION_CANNOT_RETURN_NULL = "MESSAGE_SERIALIZATION_CANNOT_RETURN_NULL";
     public const string MESSAGE_ENVELOP_SERIALIZATION_CANNOT_RETURN_NULL = "MESSAGE_ENVELOP_SERIALIZATION_CANNOT_RETURN_NULL";
 
@@ -29,21 +29,21 @@ public abstract class RabbitMqPublisherBase
     public abstract Task PublishAsync<TSubject>(TSubject subject, CancellationToken cancellationToken);
     public abstract Task PublishAsync<TSubject>(TSubject subject, Type subjectBaseType, CancellationToken cancellationToken);
 
-    public void Subscribe(Type subscriberType, Type subjectType)
+    public virtual void Subscribe(Type subscriberType, Type subjectType)
     {
-        throw new NotImplementedException();
+        throw new NotImplementedException(MESSAGE_SUBSCRIBER_UNSUPPORTED);
     }
-    public void Subscribe<TSubscriber>(Type subjectType)
+    public virtual void Subscribe<TSubscriber>(Type subjectType)
     {
-        throw new NotImplementedException();
+        throw new NotImplementedException(MESSAGE_SUBSCRIBER_UNSUPPORTED);
     }
-    public void Subscribe<TSubscriber, TSubject>() where TSubscriber : ISubscriber<TSubject>
+    public virtual void Subscribe<TSubscriber, TSubject>() where TSubscriber : ISubscriber<TSubject>
     {
-        throw new NotImplementedException();
+        throw new NotImplementedException(MESSAGE_SUBSCRIBER_UNSUPPORTED);
     }
 
     // Protected Methods
-    protected ReadOnlyMemory<byte> GetMessage<TSubject>(TSubject subject, Type subjectBaseType)
+    protected virtual ReadOnlyMemory<byte> GetMessage<TSubject>(TSubject subject, Type subjectBaseType)
     {
         if (subject is null)
             throw new ArgumentNullException(nameof(subject));
@@ -70,7 +70,7 @@ public abstract class RabbitMqPublisherBase
             ? throw new InvalidOperationException(MESSAGE_ENVELOP_SERIALIZATION_CANNOT_RETURN_NULL)
             : serializedRabbitMqMessageEnvelop.Value;
     }
-    protected IBasicProperties? GetBasicPropertiesInternal(object subject, Type subjectBaseType)
+    protected virtual IBasicProperties? GetBasicPropertiesInternal(object subject, Type subjectBaseType)
     {
         var propertyDictionary = GetBasicProperties(subject, subjectBaseType);
 
