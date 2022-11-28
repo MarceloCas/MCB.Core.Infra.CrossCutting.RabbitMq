@@ -3,7 +3,7 @@
 namespace MCB.Core.Infra.CrossCutting.RabbitMq.Models;
 public record RabbitMqExchangeConfig
 (
-    string ExchangeName,
+    string ExchangeNameBase,
     RabbitMqExchangeType ExchangeType,
     bool Durable,
     bool AutoDelete,

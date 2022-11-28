@@ -76,7 +76,7 @@ public class RabbitMqTest
         connection.ExchangeDeclare(exchangeConfig); // Run for second time to bypass
 
         // Assert
-        var exchangeExists = connection.CheckIfExchangeExists(exchangeConfig.ExchangeName);
+        var exchangeExists = connection.CheckIfExchangeExists(exchangeConfig.ExchangeNameBase);
         exchangeExists.Should().BeTrue();
     }
     [Fact]
@@ -94,7 +94,7 @@ public class RabbitMqTest
         connection.ExchangeDeclare(exchangeConfig); // Run for second time to bypass
 
         // Assert
-        var exchangeExists = connection.CheckIfExchangeExists(exchangeConfig.ExchangeName);
+        var exchangeExists = connection.CheckIfExchangeExists(exchangeConfig.ExchangeNameBase);
         exchangeExists.Should().BeTrue();
     }
     [Fact]
@@ -112,7 +112,7 @@ public class RabbitMqTest
         connection.ExchangeDeclare(exchangeConfig); // Run for second time to bypass
 
         // Assert
-        var exchangeExists = connection.CheckIfExchangeExists(exchangeConfig.ExchangeName);
+        var exchangeExists = connection.CheckIfExchangeExists(exchangeConfig.ExchangeNameBase);
         exchangeExists.Should().BeTrue();
     }
     [Fact]
@@ -130,7 +130,7 @@ public class RabbitMqTest
         connection.ExchangeDeclare(exchangeConfig); // Run for second time to bypass
 
         // Assert
-        var exchangeExists = connection.CheckIfExchangeExists(exchangeConfig.ExchangeName);
+        var exchangeExists = connection.CheckIfExchangeExists(exchangeConfig.ExchangeNameBase);
         exchangeExists.Should().BeTrue();
     }
 
@@ -146,7 +146,7 @@ public class RabbitMqTest
 
         // Act
         connection.ExchangeDeclare(exchangeConfig);
-        var exchangeExists = connection.CheckIfExchangeExists(exchangeConfig.ExchangeName);
+        var exchangeExists = connection.CheckIfExchangeExists(exchangeConfig.ExchangeNameBase);
 
         // Assert
         exchangeExists.Should().BeTrue();
@@ -162,7 +162,7 @@ public class RabbitMqTest
         connection.OpenConnection();
 
         // Act
-        var exchangeExists = connection.CheckIfExchangeExists(exchangeConfig.ExchangeName);
+        var exchangeExists = connection.CheckIfExchangeExists(exchangeConfig.ExchangeNameBase);
 
         // Assert
         exchangeExists.Should().BeFalse();
@@ -186,8 +186,8 @@ public class RabbitMqTest
         result1.Should().NotBeNull();
         result2.Should().NotBeNull();
 
-        result1!.QueueName.Should().Be(queueConfig.QueueName);
-        result2!.QueueName.Should().Be(queueConfig.QueueName);
+        result1!.QueueName.Should().Be(queueConfig.QueueNameBase);
+        result2!.QueueName.Should().Be(queueConfig.QueueNameBase);
     }
     [Fact]
     public void RabbitMqConnection_Should_CheckIfQueueExists_Success()
@@ -201,11 +201,11 @@ public class RabbitMqTest
 
         // Act
         var result1 = connection.QueueDeclare(queueConfig);
-        var queueExists = connection.CheckIfQueueExists(queueConfig.QueueName);
+        var queueExists = connection.CheckIfQueueExists(queueConfig.QueueNameBase);
 
         // Assert
         result1.Should().NotBeNull();
-        result1!.QueueName.Should().Be(queueConfig.QueueName);
+        result1!.QueueName.Should().Be(queueConfig.QueueNameBase);
         queueExists.Should().BeTrue();
     }
     [Fact]
@@ -219,7 +219,7 @@ public class RabbitMqTest
         connection.OpenConnection();
 
         // Act
-        var queueExists = connection.CheckIfQueueExists(queueConfig.QueueName);
+        var queueExists = connection.CheckIfQueueExists(queueConfig.QueueNameBase);
 
         // Assert
         queueExists.Should().BeFalse();
@@ -285,7 +285,7 @@ public class RabbitMqTest
             await queuePublisher.PublishAsync(new DummyMessage(), cancellationToken: default);
 
         // Act
-        var queueCounters = connection.GetQueueCounters(queueConfig.QueueName);
+        var queueCounters = connection.GetQueueCounters(queueConfig.QueueNameBase);
 
         // Assert
         queueCounters?.messageCount.Should().Be((uint)messageCount);
@@ -302,7 +302,7 @@ public class RabbitMqTest
         connection.OpenConnection();
 
         // Act
-        var queueCounters = connection.GetQueueCounters(queueConfig.QueueName);
+        var queueCounters = connection.GetQueueCounters(queueConfig.QueueNameBase);
 
         // Assert
         queueCounters.Should().BeNull();
@@ -327,8 +327,8 @@ public class RabbitMqTest
         await queuePublisher.PublishAsync(new DummyMessage(), cancellationToken: default);
 
         // Act
-        connection.DeleteQueue(queueConfig.QueueName);
-        var queueExists = connection.CheckIfExchangeExists(queueConfig.QueueName);
+        connection.DeleteQueue(queueConfig.QueueNameBase);
+        var queueExists = connection.CheckIfExchangeExists(queueConfig.QueueNameBase);
 
         // Assert
         queueExists.Should().BeFalse();
@@ -347,8 +347,8 @@ public class RabbitMqTest
         connection.QueueDeclare(queueConfig);
 
         // Act
-        connection.DeleteQueue(queueConfig.QueueName, ifEmpty: true);
-        var queueExists = connection.CheckIfExchangeExists(queueConfig.QueueName);
+        connection.DeleteQueue(queueConfig.QueueNameBase, ifEmpty: true);
+        var queueExists = connection.CheckIfExchangeExists(queueConfig.QueueNameBase);
 
         // Assert
         queueExists.Should().BeFalse();
@@ -372,8 +372,8 @@ public class RabbitMqTest
         await queuePublisher.PublishAsync(new DummyMessage(), cancellationToken: default);
 
         // Act
-        connection.DeleteQueue(queueConfig.QueueName, ifEmpty: true);
-        var queueExists = connection.CheckIfQueueExists(queueConfig.QueueName);
+        connection.DeleteQueue(queueConfig.QueueNameBase, ifEmpty: true);
+        var queueExists = connection.CheckIfQueueExists(queueConfig.QueueNameBase);
 
         // Assert
         queueExists.Should().BeTrue();
@@ -398,8 +398,8 @@ public class RabbitMqTest
         await queuePublisher.PublishAsync(new DummyMessage(), cancellationToken: default);
 
         // Act
-        connection.DeleteQueue(queueConfig.QueueName, ifUnused: true);
-        var queueExists = connection.CheckIfExchangeExists(queueConfig.QueueName);
+        connection.DeleteQueue(queueConfig.QueueNameBase, ifUnused: true);
+        var queueExists = connection.CheckIfExchangeExists(queueConfig.QueueNameBase);
 
         // Assert
         queueExists.Should().BeFalse();
@@ -423,8 +423,8 @@ public class RabbitMqTest
         await queuePublisher.PublishAsync(new DummyMessage(), cancellationToken: default);
 
         // Act
-        connection.DeleteQueue(queueConfig.QueueName, ifEmpty: true);
-        var queueExists = connection.CheckIfQueueExists(queueConfig.QueueName);
+        connection.DeleteQueue(queueConfig.QueueNameBase, ifEmpty: true);
+        var queueExists = connection.CheckIfQueueExists(queueConfig.QueueNameBase);
 
         // Assert
 #warning change this test when consumer was implemented
@@ -445,8 +445,8 @@ public class RabbitMqTest
         connection.QueueDeclare(queueConfig);
 
         // Act
-        connection.DeleteQueue(queueConfig.QueueName, ifUnused: true, ifEmpty: true);
-        var queueExists = connection.CheckIfExchangeExists(queueConfig.QueueName);
+        connection.DeleteQueue(queueConfig.QueueNameBase, ifUnused: true, ifEmpty: true);
+        var queueExists = connection.CheckIfExchangeExists(queueConfig.QueueNameBase);
 
         // Assert
         queueExists.Should().BeFalse();
@@ -470,8 +470,8 @@ public class RabbitMqTest
         await queuePublisher.PublishAsync(new DummyMessage(), cancellationToken: default);
 
         // Act
-        connection.DeleteQueue(queueConfig.QueueName, ifUnused: true, ifEmpty: true);
-        var queueExists = connection.CheckIfQueueExists(queueConfig.QueueName);
+        connection.DeleteQueue(queueConfig.QueueNameBase, ifUnused: true, ifEmpty: true);
+        var queueExists = connection.CheckIfQueueExists(queueConfig.QueueNameBase);
 
         // Assert
 #warning change this test when consumer was implemented
@@ -496,12 +496,12 @@ public class RabbitMqTest
             queueConfig
         );
         await queuePublisher.PublishAsync(new DummyMessage(), cancellationToken: default);
-        var beforeQueueCounters = connection.GetQueueCounters(queueConfig.QueueName)!;
+        var beforeQueueCounters = connection.GetQueueCounters(queueConfig.QueueNameBase)!;
 
         // Act
-        connection.PurgeQueue(queueConfig.QueueName);
-        var queueExists = connection.CheckIfQueueExists(queueConfig.QueueName);
-        var afterQueueCounters = connection.GetQueueCounters(queueConfig.QueueName)!;
+        connection.PurgeQueue(queueConfig.QueueNameBase);
+        var queueExists = connection.CheckIfQueueExists(queueConfig.QueueNameBase);
+        var afterQueueCounters = connection.GetQueueCounters(queueConfig.QueueNameBase)!;
 
         // Assert
         queueExists.Should().BeTrue();

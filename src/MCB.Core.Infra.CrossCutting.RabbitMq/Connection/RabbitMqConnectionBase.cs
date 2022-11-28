@@ -38,6 +38,7 @@ public abstract class RabbitMqConnectionBase
             NetworkRecoveryInterval = _connectionConfig.NetworkRecoveryInterval,
             TopologyRecoveryEnabled = _connectionConfig.TopologyRecoveryEnabled,
             RequestedHeartbeat = _connectionConfig.RequestedHeartbeat,
+            ConsumerDispatchConcurrency = _connectionConfig.ConsumerDispatchConcurrency,
         };
     }
 
@@ -55,24 +56,24 @@ public abstract class RabbitMqConnectionBase
         OpenConnectionInternal();
     }
 
-    public QueueDeclareOk? QueueDeclare(RabbitMqQueueConfig queueConfig)
+    public QueueDeclareOk? QueueDeclare(RabbitMqQueueConfig queueConfig, Func<string, string>? queueNameFactory = null)
     {
         TryAutoConnect();
 
         return Channel.QueueDeclare(
-            queue: queueConfig.QueueName,
+            queue: queueNameFactory?.Invoke(queueConfig.QueueNameBase) ?? queueConfig.QueueNameBase,
             durable: queueConfig.Durable,
             exclusive: queueConfig.Exclusive,
             autoDelete: queueConfig.AutoDelete,
             arguments: queueConfig.Arguments
         );
     }
-    public void ExchangeDeclare(RabbitMqExchangeConfig exchangeConfig)
+    public void ExchangeDeclare(RabbitMqExchangeConfig exchangeConfig, Func<string, string>? exchangeNameFactory = null)
     {
         TryAutoConnect();
 
         Channel.ExchangeDeclare(
-            exchange: exchangeConfig.ExchangeName,
+            exchange: exchangeNameFactory?.Invoke(exchangeConfig.ExchangeNameBase) ?? exchangeConfig.ExchangeNameBase,
             type: exchangeConfig.ExchangeType switch
             {
                 Models.Enums.RabbitMqExchangeType.Direct => ExchangeType.Direct,
@@ -109,31 +110,6 @@ public abstract class RabbitMqConnectionBase
         catch (Exception)
         {
             return false;
-        }
-    }
-
-    public void PublishQueue(RabbitMqQueueConfig queueConfig, IBasicProperties properties, ReadOnlyMemory<byte> message) 
-    {
-        lock (Channel)
-        {
-            Channel.BasicPublish(
-                exchange: string.Empty,
-                routingKey: queueConfig.QueueName,
-                basicProperties: properties,
-                body: message
-            );
-        }
-    }
-    public void PublishExchange(RabbitMqExchangeConfig exchangeConfig, string routingKey, IBasicProperties properties, ReadOnlyMemory<byte> message)
-    {
-        lock (Channel)
-        {
-            Channel.BasicPublish(
-                exchange: exchangeConfig.ExchangeName,
-                routingKey: routingKey,
-                basicProperties: properties,
-                body: message
-            );
         }
     }
 
@@ -185,11 +161,6 @@ public abstract class RabbitMqConnectionBase
     public IBasicProperties CreateBasicProperties()
     {
         return Channel.CreateBasicProperties();
-    }
-
-    public void CloseConsumer(string consumerTag)
-    {
-        Channel.BasicCancel(consumerTag);
     }
 
     public void Dispose()

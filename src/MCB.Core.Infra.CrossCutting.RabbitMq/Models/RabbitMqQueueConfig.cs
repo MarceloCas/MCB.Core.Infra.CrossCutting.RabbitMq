@@ -1,7 +1,7 @@
 ﻿namespace MCB.Core.Infra.CrossCutting.RabbitMq.Models;
 
 public record class RabbitMqQueueConfig(
-    string QueueName,
+    string QueueNameBase,
     bool Durable,
     bool Exclusive,
     bool AutoDelete,

@@ -43,4 +43,5 @@ public class RabbitMqDirectExchangePublisher
             SourcePlatform: Guid.NewGuid().ToString()
         );
     }
+    protected override string GetExchangeName(string exchangeBaseName) => exchangeBaseName;
 }

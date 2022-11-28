@@ -43,4 +43,5 @@ public class RabbitMqQueuePublisher
             SourcePlatform: Guid.NewGuid().ToString()
         );
     }
+    protected override string GetQueueName(string queueBaseName) => queueBaseName;
 }

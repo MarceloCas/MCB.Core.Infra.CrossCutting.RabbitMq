@@ -62,6 +62,7 @@ public class DefaultFixture
             Password: "guest",
             VirtualHost: "/",
             DispatchConsumersAsync: true,
+            ConsumerDispatchConcurrency: 1,
             AutoConnect: true,
             AutomaticRecoveryEnabled: true,
             NetworkRecoveryInterval: TimeSpan.FromSeconds(5),
@@ -72,7 +73,7 @@ public class DefaultFixture
     public RabbitMqExchangeConfig CreateDirectExchangeConfig()
     {
         return new RabbitMqExchangeConfig(
-            ExchangeName: $"temp.exchange.{Guid.NewGuid()}.direct",
+            ExchangeNameBase: $"temp.exchange.{Guid.NewGuid()}.direct",
             ExchangeType: RabbitMqExchangeType.Direct,
             Durable: false,
             AutoDelete: true,
@@ -82,7 +83,7 @@ public class DefaultFixture
     public RabbitMqExchangeConfig CreateFanoutExchangeConfig()
     {
         return new RabbitMqExchangeConfig(
-            ExchangeName: $"temp.exchange.{Guid.NewGuid()}.fanout",
+            ExchangeNameBase: $"temp.exchange.{Guid.NewGuid()}.fanout",
             ExchangeType: RabbitMqExchangeType.Fanout,
             Durable: false,
             AutoDelete: true,
@@ -92,7 +93,7 @@ public class DefaultFixture
     public RabbitMqExchangeConfig CreateHeadersExchangeConfig()
     {
         return new RabbitMqExchangeConfig(
-            ExchangeName: $"temp.exchange.{Guid.NewGuid()}.headers",
+            ExchangeNameBase: $"temp.exchange.{Guid.NewGuid()}.headers",
             ExchangeType: RabbitMqExchangeType.Header,
             Durable: false,
             AutoDelete: true,
@@ -102,7 +103,7 @@ public class DefaultFixture
     public RabbitMqExchangeConfig CreateTopicExchangeConfig()
     {
         return new RabbitMqExchangeConfig(
-            ExchangeName: $"temp.exchange.{Guid.NewGuid()}.topic",
+            ExchangeNameBase: $"temp.exchange.{Guid.NewGuid()}.topic",
             ExchangeType: RabbitMqExchangeType.Topic,
             Durable: false,
             AutoDelete: true,
@@ -113,7 +114,7 @@ public class DefaultFixture
     public RabbitMqQueueConfig CreateQueueConfig()
     {
         return new RabbitMqQueueConfig(
-            QueueName: $"temp.queue.{Guid.NewGuid()}",
+            QueueNameBase: $"temp.queue.{Guid.NewGuid()}",
             Durable: false,
             Exclusive: false,
             AutoDelete: true,

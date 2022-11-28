@@ -8,6 +8,7 @@ public record class RabbitMqConnectionConfig(
     string Password,
     string VirtualHost,
     bool DispatchConsumersAsync,
+    int ConsumerDispatchConcurrency,
     bool AutoConnect,
     bool AutomaticRecoveryEnabled,
     TimeSpan NetworkRecoveryInterval,
