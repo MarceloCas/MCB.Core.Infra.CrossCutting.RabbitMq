@@ -44,4 +44,5 @@ public class RabbitMqQueuePublisher
         );
     }
     protected override string GetQueueName(string queueBaseName) => queueBaseName;
+
 }

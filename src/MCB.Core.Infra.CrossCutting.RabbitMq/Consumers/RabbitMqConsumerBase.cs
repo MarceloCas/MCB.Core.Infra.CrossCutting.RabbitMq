@@ -97,21 +97,13 @@ public abstract class RabbitMqConsumerBase
                     );
             }
         }
-        catch (Exception ex)
+        catch (Exception)
         {
-            ErrorRabbitMqPublisher?.PublishAsync(
-                new RabbitMqMessageErrorEnvelop(
-                    TenantId: rabbitMqMessageEnvelop?.TenantId ?? Guid.Empty,
-                    CorrelationId: rabbitMqMessageEnvelop?.CorrelationId ?? Guid.Empty,
-                    ExecutionUser: rabbitMqMessageEnvelop?.ExecutionUser ?? string.Empty,
-                    SourcePlatform: rabbitMqMessageEnvelop?.SourcePlatform ?? string.Empty,
-                    TimeStamp: rabbitMqMessageEnvelop?.TimeStamp ?? default,
-                    MessageType: typeof(RabbitMqMessageErrorEnvelop),
-                    Exception: ex,
-                    Message: rabbitMqMessageEnvelop?.Message ?? Array.Empty<byte>()
-                ),
-                cancellationToken: default
-            );
+            if(rabbitMqMessageEnvelop is not null)
+                ErrorRabbitMqPublisher?.PublishAsync(
+                    rabbitMqMessageEnvelop.Message,
+                    cancellationToken: default
+                );
 
             lock (Connection.Channel)
             {

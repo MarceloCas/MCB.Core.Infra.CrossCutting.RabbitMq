@@ -29,14 +29,23 @@ public abstract class RabbitMqQueuePublisherBase
     }
     public override Task PublishAsync<TSubject>(TSubject subject, Type subjectBaseType, CancellationToken cancellationToken)
     {
+        return PublishAsync(
+            message: CreateRabbitMqMessageEnvelopInfo(subject, subjectBaseType),
+            routingKey: GetQueueName(QueueConfig.QueueNameBase),
+            basicProperties: GetBasicPropertiesInternal(subject!, subjectBaseType),
+            cancellationToken: cancellationToken
+        );
+    }
+    public override Task PublishAsync(ReadOnlyMemory<byte> message, string? routingKey, IBasicProperties? basicProperties, CancellationToken cancellationToken)
+    {
 #pragma warning disable CS8604 // Possible null reference argument.
         lock (Connection.Channel)
         {
             Connection.Channel.BasicPublish(
                 exchange: string.Empty,
-                routingKey: GetQueueName(QueueConfig.QueueNameBase),
-                basicProperties: GetBasicPropertiesInternal(subject, subjectBaseType),
-                body: GetMessage(subject, subjectBaseType)
+                routingKey: routingKey,
+                basicProperties: basicProperties,
+                body: message
             );
         }
 #pragma warning restore CS8604 // Possible null reference argument.

@@ -28,6 +28,7 @@ public abstract class RabbitMqPublisherBase
     // Public Methods
     public abstract Task PublishAsync<TSubject>(TSubject subject, CancellationToken cancellationToken);
     public abstract Task PublishAsync<TSubject>(TSubject subject, Type subjectBaseType, CancellationToken cancellationToken);
+    public abstract Task PublishAsync(ReadOnlyMemory<byte> message, string? routingKey, IBasicProperties? basicProperties, CancellationToken cancellationToken);
 
     public virtual void Subscribe(Type subscriberType, Type subjectType)
     {
@@ -43,7 +44,7 @@ public abstract class RabbitMqPublisherBase
     }
 
     // Protected Methods
-    protected virtual ReadOnlyMemory<byte> GetMessage<TSubject>(TSubject subject, Type subjectBaseType)
+    protected virtual ReadOnlyMemory<byte> CreateRabbitMqMessageEnvelopInfo<TSubject>(TSubject subject, Type subjectBaseType)
     {
         if (subject is null)
             throw new ArgumentNullException(nameof(subject));
@@ -54,6 +55,7 @@ public abstract class RabbitMqPublisherBase
             throw new InvalidOperationException(MESSAGE_SERIALIZATION_CANNOT_RETURN_NULL);
 
         var rabbitMqMessageEnvelopInfo = GetRabbitMqMessageEnvelopInfo(subject, subjectBaseType);
+
         var rabbitMqMessageEnvelop = new RabbitMqMessageEnvelop(
             TenantId: rabbitMqMessageEnvelopInfo.TenantId,
             CorrelationId: rabbitMqMessageEnvelopInfo.CorrelationId,

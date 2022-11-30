@@ -29,21 +29,29 @@ public abstract class RabbitMqExchangePublisherBase
     }
     public override Task PublishAsync<TSubject>(TSubject subject, Type subjectBaseType, CancellationToken cancellationToken)
     {
+        return PublishAsync(
+            message: CreateRabbitMqMessageEnvelopInfo(subject, subjectBaseType),
+            routingKey: GetRoutingKey(subject, subjectBaseType),
+            basicProperties: GetBasicPropertiesInternal(subject!, subjectBaseType),
+            cancellationToken: cancellationToken
+        );
+    }
+    public override Task PublishAsync(ReadOnlyMemory<byte> message, string? routingKey, IBasicProperties? basicProperties, CancellationToken cancellationToken)
+    {
 #pragma warning disable CS8604 // Possible null reference argument.
         lock (Connection.Channel)
         {
             Connection.Channel.BasicPublish(
                 exchange: GetExchangeName(ExchangeConfig.ExchangeNameBase),
-                routingKey: GetRoutingKey(subject, subjectBaseType),
-                basicProperties: GetBasicPropertiesInternal(subject, subjectBaseType),
-                body: GetMessage(subject, subjectBaseType)
+                routingKey: routingKey,
+                basicProperties: basicProperties,
+                body: message
             );
         }
 #pragma warning restore CS8604 // Possible null reference argument.
 
         return Task.CompletedTask;
     }
-
     // Protected Abstract Methods
     protected abstract string GetRoutingKey(object subject, Type subjectBaseType);
 }
