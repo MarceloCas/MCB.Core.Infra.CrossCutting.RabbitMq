@@ -26,6 +26,7 @@ public abstract class RabbitMqPublisherBase
     }
 
     // Public Methods
+    public abstract void Initialize();
     public abstract Task PublishAsync<TSubject>(TSubject subject, CancellationToken cancellationToken);
     public abstract Task PublishAsync<TSubject>(TSubject subject, Type subjectBaseType, CancellationToken cancellationToken);
     public abstract Task PublishAsync(ReadOnlyMemory<byte> message, string? routingKey, IBasicProperties? basicProperties, CancellationToken cancellationToken);

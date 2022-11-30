@@ -43,6 +43,7 @@ public abstract class RabbitMqConsumerBase
     // Public Methods
     public virtual void StartConsumer(
         RabbitMqConsumerConfig consumerConfig,
+        Action<IRabbitMqConnection, RabbitMqConsumerConfig>? additionalConfigHandler,
         bool forceStop = false
     )
     {
@@ -51,7 +52,7 @@ public abstract class RabbitMqConsumerBase
         else if (IsRunning)
             throw new InvalidOperationException(CONSUMER_ALREADY_RUNNING);
 
-        StartConsumerInternal(consumerConfig);
+        StartConsumerInternal(consumerConfig, additionalConfigHandler);
     }
     public virtual void StopConsumer()
     {
@@ -116,12 +117,19 @@ public abstract class RabbitMqConsumerBase
         }
     }
 
-    private void StartConsumerInternal(RabbitMqConsumerConfig consumerConfig)
+    private void StartConsumerInternal(
+        RabbitMqConsumerConfig consumerConfig, 
+        Action<IRabbitMqConnection, RabbitMqConsumerConfig>? additionalConfigHandler
+    )
     {
         lock (_startConsumerLock)
         {
+            Connection.QueueDeclare(consumerConfig.QueueConfig, consumerConfig.QueueNameFactory);
+
             var customAsyncEventingBasicConsumer = new CustomAsyncEventingBasicConsumer(Connection.Channel);
             customAsyncEventingBasicConsumer.Received += Received;
+
+            additionalConfigHandler?.Invoke(Connection, consumerConfig);
 
             var consumerTag = Connection.Channel.BasicConsume(
                 queue: GetQueueName(consumerConfig.QueueConfig.QueueNameBase),
@@ -145,4 +153,3 @@ public abstract class RabbitMqConsumerBase
         }
     }
 }
-

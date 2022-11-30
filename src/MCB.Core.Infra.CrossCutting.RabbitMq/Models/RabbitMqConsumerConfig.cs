@@ -2,5 +2,7 @@
 public record RabbitMqConsumerConfig
 (
     RabbitMqQueueConfig QueueConfig,
-    RabbitMqQueueConfig ErrorQueueConfig
+    Func<string, string>? QueueNameFactory,
+    RabbitMqQueueConfig ErrorQueueConfig,
+    Func<string, string>? ErrorQueueNameFactory
 );

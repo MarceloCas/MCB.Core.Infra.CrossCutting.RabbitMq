@@ -23,6 +23,10 @@ public abstract class RabbitMqExchangePublisherBase
     protected abstract string GetExchangeName(string exchangeBaseName);
 
     // Public Methods
+    public override void Initialize()
+    {
+        Connection.ExchangeDeclare(ExchangeConfig, exchangeNameFactory: GetExchangeName);
+    }
     public override Task PublishAsync<TSubject>(TSubject subject, CancellationToken cancellationToken)
     {
         return PublishAsync(subject, typeof(TSubject), cancellationToken);

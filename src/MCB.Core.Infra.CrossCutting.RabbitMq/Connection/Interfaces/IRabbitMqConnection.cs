@@ -1,4 +1,5 @@
-﻿using RabbitMQ.Client;
+﻿using MCB.Core.Infra.CrossCutting.RabbitMq.Models;
+using RabbitMQ.Client;
 
 namespace MCB.Core.Infra.CrossCutting.RabbitMq.Connection.Interfaces;
 public interface IRabbitMqConnection
@@ -11,4 +12,6 @@ public interface IRabbitMqConnection
 
     // Methods
     IBasicProperties CreateBasicProperties();
+    void ExchangeDeclare(RabbitMqExchangeConfig exchangeConfig, Func<string, string>? exchangeNameFactory = null);
+    QueueDeclareOk? QueueDeclare(RabbitMqQueueConfig queueConfig, Func<string, string>? queueNameFactory = null);
 }

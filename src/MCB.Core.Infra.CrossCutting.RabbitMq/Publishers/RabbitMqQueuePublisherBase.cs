@@ -23,6 +23,10 @@ public abstract class RabbitMqQueuePublisherBase
     protected abstract string GetQueueName(string queueBaseName);
 
     // Public Methods
+    public override void Initialize()
+    {
+        Connection.QueueDeclare(QueueConfig, queueNameFactory: GetQueueName);
+    }
     public override Task PublishAsync<TSubject>(TSubject subject, CancellationToken cancellationToken)
     {
         return PublishAsync(subject, typeof(TSubject), cancellationToken);
