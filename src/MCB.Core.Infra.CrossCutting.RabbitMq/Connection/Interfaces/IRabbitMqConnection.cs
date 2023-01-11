@@ -5,6 +5,8 @@ namespace MCB.Core.Infra.CrossCutting.RabbitMq.Connection.Interfaces;
 public interface IRabbitMqConnection
     : IDisposable
 {
+    bool IsOpen { get; }
+
     void OpenConnection(bool forceReopen = false);
 
     bool CheckIfExchangeExists(string exchangeName);
