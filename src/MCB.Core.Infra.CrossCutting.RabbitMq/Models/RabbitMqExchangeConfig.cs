@@ -7,5 +7,5 @@ public record RabbitMqExchangeConfig
     RabbitMqExchangeType ExchangeType,
     bool Durable,
     bool AutoDelete,
-    IDictionary<string, object> Arguments
+    IDictionary<string, object>? Arguments
 );
