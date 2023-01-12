@@ -4,6 +4,7 @@ using RabbitMQ.Client;
 using RabbitMQ.Client.Exceptions;
 
 namespace MCB.Core.Infra.CrossCutting.RabbitMq.Connection;
+
 public abstract class RabbitMqConnectionBase
     : IRabbitMqConnection
 {
@@ -42,7 +43,7 @@ public abstract class RabbitMqConnectionBase
     }
 
     // Public Methods
-    public void OpenConnection(bool forceReopen = false)
+    public virtual void OpenConnection(bool forceReopen = false)
     {
         if (IsOpen)
         {
@@ -55,7 +56,7 @@ public abstract class RabbitMqConnectionBase
         OpenConnectionInternal();
     }
 
-    public QueueDeclareOk? QueueDeclare(RabbitMqQueueConfig queueConfig)
+    public virtual QueueDeclareOk? QueueDeclare(RabbitMqQueueConfig queueConfig)
     {
         TryAutoConnect();
 
@@ -67,7 +68,7 @@ public abstract class RabbitMqConnectionBase
             arguments: queueConfig.Arguments
         );
     }
-    public void ExchangeDeclare(RabbitMqExchangeConfig exchangeConfig)
+    public virtual void ExchangeDeclare(RabbitMqExchangeConfig exchangeConfig)
     {
         TryAutoConnect();
 
@@ -87,7 +88,7 @@ public abstract class RabbitMqConnectionBase
         );
     }
 
-    public bool CheckIfQueueExists(string queueName)
+    public virtual bool CheckIfQueueExists(string queueName)
     {
         try
         {
@@ -99,7 +100,7 @@ public abstract class RabbitMqConnectionBase
             return false;
         }
     }
-    public bool CheckIfExchangeExists(string exchangeName)
+    public virtual bool CheckIfExchangeExists(string exchangeName)
     {
         try
         {
@@ -112,7 +113,7 @@ public abstract class RabbitMqConnectionBase
         }
     }
 
-    public void PublishQueue(RabbitMqQueueConfig queueConfig, IBasicProperties properties, ReadOnlyMemory<byte> message) 
+    public virtual void PublishQueue(RabbitMqQueueConfig queueConfig, IBasicProperties properties, ReadOnlyMemory<byte> message) 
     {
         lock (_channel)
         {
@@ -124,7 +125,7 @@ public abstract class RabbitMqConnectionBase
             );
         }
     }
-    public void PublishExchange(RabbitMqExchangeConfig exchangeConfig, string routingKey, IBasicProperties properties, ReadOnlyMemory<byte> message)
+    public virtual void PublishExchange(RabbitMqExchangeConfig exchangeConfig, string routingKey, IBasicProperties properties, ReadOnlyMemory<byte> message)
     {
         lock (_channel)
         {
@@ -137,7 +138,7 @@ public abstract class RabbitMqConnectionBase
         }
     }
 
-    public (uint messageCount, uint consumerCount)? GetQueueCounters(string queueName)
+    public virtual (uint messageCount, uint consumerCount)? GetQueueCounters(string queueName)
     {
         try
         {
@@ -150,7 +151,7 @@ public abstract class RabbitMqConnectionBase
         }
     }
 
-    public bool DeleteQueue(string queueName, bool ifUnused = false, bool ifEmpty = false)
+    public virtual bool DeleteQueue(string queueName, bool ifUnused = false, bool ifEmpty = false)
     {
         try
         {
@@ -163,31 +164,31 @@ public abstract class RabbitMqConnectionBase
             return false;
         }
     }
-    public void PurgeQueue(string queueName)
+    public virtual void PurgeQueue(string queueName)
     {
         _channel.QueuePurge(queueName);
     }
 
-    public void DisconectConsumer(string consumerTag)
+    public virtual void DisconectConsumer(string consumerTag)
     {
         _channel.BasicCancel(consumerTag);
     }
 
-    public void Ack(ulong deliveryTag, bool multiple)
+    public virtual void Ack(ulong deliveryTag, bool multiple)
     {
         _channel.BasicAck(deliveryTag, multiple);
     }
-    public void Nack(ulong deliveryTag, bool multiple, bool requeue)
+    public virtual void Nack(ulong deliveryTag, bool multiple, bool requeue)
     {
         _channel.BasicNack(deliveryTag, multiple, requeue);
     }
 
-    public IBasicProperties CreateBasicProperties()
+    public virtual IBasicProperties CreateBasicProperties()
     {
         return _channel.CreateBasicProperties();
     }
 
-    public void Dispose()
+    public virtual void Dispose()
     {
         CloseConnectionInternal();
 
